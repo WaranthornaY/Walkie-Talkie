@@ -3,7 +3,7 @@
 
 <head>
 
-<title>Game Radio v2</title>
+<title>Game Radio Admin</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -13,28 +13,21 @@
 <style>
 
 body{
-
     background:#111;
     color:white;
     font-family:Arial;
     text-align:center;
-
 }
 
 
 .screen{
-
     display:none;
-
 }
 
 
 .active{
-
     display:block;
-
 }
-
 
 
 input{
@@ -53,143 +46,93 @@ button{
 
     padding:15px;
     margin:8px;
+    font-size:20px;
     border-radius:15px;
     border:none;
-    font-size:20px;
 
 }
-
 
 
 
 #create{
-
     background:#2196f3;
     color:white;
-
 }
-
 
 
 #join{
-
     background:#673ab7;
     color:white;
-
 }
 
 
-
-
-#knob{
-
-    width:180px;
-    height:180px;
-
-    margin:30px auto;
-
-    border-radius:50%;
-
-    background:
-    radial-gradient(circle,#777,#222);
-
-    border:8px solid #aaa;
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    font-size:60px;
-
-    user-select:none;
-
-    touch-action:none;
-
+#adminLogin{
+    background:#444;
+    color:white;
 }
 
 
-
+#adminEnter{
+    background:gold;
+    color:black;
+}
 
 
 #talk{
 
-    width:220px;
-
-    height:220px;
-
+    width:210px;
+    height:210px;
     border-radius:50%;
-
     background:green;
-
     color:white;
-
-    font-size:38px;
-
-    font-weight:bold;
+    font-size:35px;
 
 }
-
 
 
 #talk:active{
 
     background:red;
 
-    transform:scale(.9);
-
 }
 
+
+
+#adminTalk{
+
+    width:210px;
+    height:210px;
+    border-radius:50%;
+    background:gold;
+    color:black;
+    font-size:30px;
+
+}
 
 
 
 #emergency{
 
     background:red;
-
     color:white;
 
 }
-
 
 
 #dead{
 
     background:black;
-
     color:white;
 
 }
-
 
 
 #alive{
 
     background:green;
-
     color:white;
 
 }
-
-
-
-#mute{
-
-    background:orange;
-
-}
-
-
-
-#exit{
-
-    background:#900;
-
-    color:white;
-
-}
-
 
 
 
@@ -197,26 +140,20 @@ button{
 #chat{
 
     background:#222;
-
-    border-radius:15px;
-
-    padding:15px;
-
     margin:15px;
-
-    height:180px;
-
-    overflow-y:auto;
-
+    padding:15px;
+    border-radius:15px;
+    height:200px;
+    overflow:auto;
     text-align:left;
 
 }
 
 
+#announcement{
 
-#signal{
-
-    color:#00ff00;
+    background:#555;
+    color:white;
 
 }
 
@@ -224,13 +161,11 @@ button{
 
 </style>
 
-
 </head>
 
 
 
 <body>
-
 
 
 
@@ -246,7 +181,7 @@ button{
 <br>
 
 
-<input id="roomInput" placeholder="Room Code (join only)">
+<input id="roomInput" placeholder="Room Code">
 
 
 
@@ -254,63 +189,21 @@ button{
 
 
 <button id="create">
-
 CREATE ROOM
-
 </button>
 
 
 <button id="join">
-
 JOIN ROOM
-
 </button>
 
 
-</div>
+
+<br><br>
 
 
-
-
-
-
-
-
-<div id="tuning" class="screen">
-
-
-<h1>📻 RADIO TUNING</h1>
-
-
-
-<div id="knob">
-
-◉
-
-</div>
-
-
-
-<h2 id="channel">
-
-Channel: ----
-
-</h2>
-
-
-
-<h3 id="signal">
-
-Scanning frequency...
-
-</h3>
-
-
-
-<button id="connect">
-
-LOCK CHANNEL
-
+<button id="adminLogin">
+👑 ADMIN LOGIN
 </button>
 
 
@@ -319,6 +212,32 @@ LOCK CHANNEL
 
 
 
+
+
+<div id="adminLoginScreen" class="screen">
+
+
+<h1>👑 ADMIN ACCESS</h1>
+
+
+<input id="adminCode" placeholder="Code">
+
+
+<br>
+
+
+<input id="adminRoom" placeholder="Room">
+
+
+<br>
+
+
+<button id="adminEnter">
+ENTER
+</button>
+
+
+</div>
 
 
 
@@ -327,45 +246,27 @@ LOCK CHANNEL
 <div id="radio" class="screen">
 
 
-<h1>
-
-🎮 GAME RADIO
-
-</h1>
+<h1>📻 GAME RADIO</h1>
 
 
-
-<h2 id="roomText">
-
-</h2>
-
-
+<h2 id="roomText"></h2>
 
 
 <div id="players">
-
-👥 Players
-
+Players:
 </div>
-
-
 
 
 <div id="chat">
-
-💬 Chat
-
+Chat:
 </div>
-
 
 
 
 <button id="talk">
 
 🎤
-
 <br>
-
 TALK
 
 </button>
@@ -375,59 +276,85 @@ TALK
 <br>
 
 
-
-
 <button id="emergency">
-
 🚨 HELP
-
 </button>
-
 
 
 <button id="dead">
-
 💀 DEAD
-
 </button>
-
 
 
 <button id="alive">
-
 ✅ ALIVE
-
 </button>
 
+
+
+</div>
+
+
+
+
+
+<div id="admin" class="screen">
+
+
+<h1>👑 ADMIN RADIO</h1>
+
+
+<h2 id="adminRoomText"></h2>
+
+
+<div id="adminPlayers">
+Players:
+</div>
+
+
+
+<div id="adminChat">
+Chat:
+</div>
+
+
+
+<button id="adminTalk">
+
+👑
+<br>
+TALK ALL
+
+</button>
 
 
 
 <br>
 
 
-
-<button id="mute">
-
-🔊 MUTE
-
-</button>
+<input id="announcement"
+placeholder="Announcement">
 
 
+<br>
 
-<button id="exit">
 
-🚪 EXIT
+<button id="sendAnnouncement">
+
+📢 SEND
 
 </button>
+
+
+</div>
+
+
 
 
 
 <audio id="audio" autoplay></audio>
-
-
-
-</div>
 <script type="module">
+
 
 import { initializeApp }
 from
@@ -479,13 +406,10 @@ appId:"1:410149019048:web:5e5b3bd589613119d8d19d"
 
 
 
-const app =
-initializeApp(firebaseConfig);
-
-
-
 const db =
-getDatabase(app);
+getDatabase(
+initializeApp(firebaseConfig)
+);
 
 
 
@@ -503,28 +427,25 @@ let roomCode;
 
 let stream;
 
+
 let remoteAudio =
 document.getElementById("audio");
 
-let voiceConnected=false;
 
 
 
 
-
-
-
-function showScreen(name){
+function showScreen(id){
 
 document.querySelectorAll(".screen")
-.forEach(x=>{
+.forEach(s=>{
 
-x.classList.remove("active");
+s.classList.remove("active");
 
 });
 
 
-document.getElementById(name)
+document.getElementById(id)
 .classList.add("active");
 
 }
@@ -548,12 +469,12 @@ return Math.random()
 
 
 
-
 function randomRoom(){
 
 return Math.floor(
 
 1000+
+
 Math.random()*9000
 
 );
@@ -597,10 +518,11 @@ peer=new Peer();
 
 peer.on("open",id=>{
 
+
 myPeerID=id;
 
-});
 
+});
 
 
 
@@ -621,72 +543,12 @@ remoteAudio.srcObject=audio;
 });
 
 
-
-});
-
-
-
-}
-
-
-
-
-
-
-
-async function createPlayer(){
-
-
-playerID=randomID();
-
-
-
-await set(
-
-ref(
-
-db,
-
-"rooms/"+roomCode+"/players/"+playerID
-
-),
-
-{
-
-
-name:playerName,
-
-peer:myPeerID,
-
-online:true
-
-
-}
-
-);
-
-
-
-onDisconnect(
-
-ref(
-
-db,
-
-"rooms/"+roomCode+"/players/"+playerID
-
-)
-
-)
-
-.update({
-
-online:false
-
 });
 
 
 }
+
+
 
 
 
@@ -708,6 +570,7 @@ db,
 
 ),
 
+
 {
 
 text:text,
@@ -716,11 +579,75 @@ time:Date.now()
 
 }
 
+
+);
+
+
+}
+
+
+
+
+
+
+
+async function addPlayer(){
+
+
+playerID=randomID();
+
+
+
+await set(
+
+ref(
+
+db,
+
+"rooms/"+roomCode+
+"/players/"+playerID
+
+),
+
+
+{
+
+name:playerName,
+
+peer:myPeerID,
+
+online:true
+
+}
+
+
 );
 
 
 
+onDisconnect(
+
+ref(
+
+db,
+
+"rooms/"+roomCode+
+"/players/"+playerID
+
+)
+
+)
+
+.update({
+
+online:false
+
+});
+
+
 }
+
+
 
 
 
@@ -738,24 +665,25 @@ ref(
 
 db,
 
-"rooms/"+roomCode+"/players"
+"rooms/"+roomCode+
+"/players"
 
 ),
-
 
 
 snap=>{
 
 
-let box=
+let data=snap.val();
+
+
+
+let box =
 document.getElementById("players");
 
 
+
 box.innerHTML="👥 Players<br>";
-
-
-
-let data=snap.val();
 
 
 
@@ -767,12 +695,11 @@ Object.values(data)
 .forEach(p=>{
 
 
-box.innerHTML+=
+box.innerHTML +=
 
 (p.online?"🟢 ":"🔴 ")
 
 +p.name+
-
 "<br>";
 
 
@@ -787,7 +714,6 @@ box.innerHTML+=
 });
 
 
-
 }
 
 
@@ -799,14 +725,14 @@ box.innerHTML+=
 function watchChat(){
 
 
-
 onValue(
 
 ref(
 
 db,
 
-"rooms/"+roomCode+"/messages"
+"rooms/"+roomCode+
+"/messages"
 
 ),
 
@@ -814,7 +740,7 @@ db,
 snap=>{
 
 
-let box=
+let box =
 document.getElementById("chat");
 
 
@@ -836,10 +762,9 @@ Object.values(data)
 .forEach(m=>{
 
 
-box.innerHTML+=
+box.innerHTML +=
 
 m.text+
-
 "<br>";
 
 
@@ -854,7 +779,6 @@ m.text+
 });
 
 
-
 }
 
 
@@ -863,11 +787,14 @@ m.text+
 
 
 
+// PLAYER CREATE ROOM
+
+
 document.getElementById("create")
 .onclick=async()=>{
 
 
-playerName=
+playerName =
 document.getElementById("name").value;
 
 
@@ -883,7 +810,6 @@ return;
 
 
 await getMic();
-
 
 
 startPeer();
@@ -917,263 +843,7 @@ created:true
 
 
 
-await createPlayer();
-
-
-
-document.getElementById("channel")
-.innerHTML=
-
-"Channel: "+roomCode;
-
-
-
-showScreen("tuning");
-
-
-
-});
-
-
-
-};
-
-document.getElementById("join")
-.onclick=async()=>{
-
-
-playerName=
-document.getElementById("name").value;
-
-
-roomCode=
-document.getElementById("roomInput").value;
-
-
-
-if(!playerName || !roomCode){
-
-alert("Enter name and room");
-
-return;
-
-}
-
-
-
-let room =
-await get(
-
-ref(
-
-db,
-
-"rooms/"+roomCode
-
-)
-
-);
-
-
-
-if(!room.exists()){
-
-alert("Room does not exist");
-
-return;
-
-}
-
-
-
-await getMic();
-
-
-startPeer();
-
-
-
-peer.on("open",async()=>{
-
-
-await createPlayer();
-
-
-
-document.getElementById("channel")
-.innerHTML=
-
-"Channel: "+roomCode;
-
-
-
-showScreen("tuning");
-
-
-
-});
-
-
-
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-let knob =
-document.getElementById("knob");
-
-
-let knobAngle=0;
-
-
-let tuning=false;
-
-
-
-knob.onpointerdown=e=>{
-
-
-tuning=true;
-
-
-knob.setPointerCapture(
-e.pointerId
-);
-
-
-};
-
-
-
-
-knob.onpointerup=()=>{
-
-
-tuning=false;
-
-
-};
-
-
-
-
-
-
-knob.onpointermove=e=>{
-
-
-if(!tuning)
-return;
-
-
-
-knobAngle += e.movementX;
-
-
-
-if(knobAngle<0)
-
-knobAngle=0;
-
-
-
-if(knobAngle>360)
-
-knobAngle=360;
-
-
-
-
-knob.style.transform=
-
-"rotate("+
-knobAngle+
-"deg)";
-
-
-
-
-let fakeChannel =
-
-Math.floor(
-
-1000+
-
-(knobAngle/360)*8999
-
-);
-
-
-
-document.getElementById("channel")
-.innerHTML=
-
-"Channel: "+fakeChannel;
-
-
-
-
-if(knobAngle>180){
-
-
-document.getElementById("signal")
-.innerHTML=
-
-"📡 Weak Signal";
-
-}
-
-
-
-if(knobAngle>300){
-
-
-document.getElementById("signal")
-.innerHTML=
-
-"🟢 Signal Found";
-
-
-}
-
-
-
-};
-
-
-
-
-
-
-
-
-
-document.getElementById("connect")
-.onclick=async()=>{
-
-
-document.getElementById("signal")
-.innerHTML=
-
-"🔒 Locking Channel...";
-
-
-
-await new Promise(
-
-r=>setTimeout(r,1000)
-
-);
+await addPlayer();
 
 
 
@@ -1198,13 +868,120 @@ sendMessage(
 
 watchPlayers();
 
+watchChat();
+
+
+});
+
+
+};
+
+
+
+
+
+
+
+// ADMIN LOGIN BUTTON
+
+
+document.getElementById("adminLogin")
+.onclick=()=>{
+
+
+showScreen("adminLoginScreen");
+
+
+};
+
+// PLAYER JOIN ROOM
+
+document.getElementById("join")
+.onclick=async()=>{
+
+
+playerName =
+document.getElementById("name").value;
+
+
+roomCode =
+document.getElementById("roomInput").value;
+
+
+
+if(!playerName || !roomCode){
+
+alert("Enter name and room");
+
+return;
+
+}
+
+
+
+let room =
+await get(
+
+ref(
+db,
+"rooms/"+roomCode
+
+)
+
+);
+
+
+
+if(!room.exists()){
+
+alert("Room not found");
+
+return;
+
+}
+
+
+
+await getMic();
+
+
+startPeer();
+
+
+
+peer.on("open",async()=>{
+
+
+await addPlayer();
+
+
+
+showScreen("radio");
+
+
+
+document.getElementById("roomText")
+.innerHTML=
+
+"Channel "+roomCode;
+
+
+
+sendMessage(
+
+"🟢 "+playerName+" joined"
+
+);
+
+
+
+watchPlayers();
 
 watchChat();
 
 
 
-connectVoice();
-
+});
 
 
 };
@@ -1217,7 +994,142 @@ connectVoice();
 
 
 
-function connectVoice(){
+// ADMIN ENTER
+
+
+document.getElementById("adminEnter")
+.onclick=async()=>{
+
+
+let code =
+document.getElementById("adminCode").value;
+
+
+roomCode =
+document.getElementById("adminRoom").value;
+
+
+
+if(code !== "1234"){
+
+alert("Wrong admin code");
+
+return;
+
+}
+
+
+
+if(!roomCode){
+
+alert("Enter room");
+
+return;
+
+}
+
+
+
+let room =
+await get(
+
+ref(
+
+db,
+
+"rooms/"+roomCode
+
+)
+
+);
+
+
+
+if(!room.exists()){
+
+alert("Room not found");
+
+return;
+
+}
+
+
+
+await getMic();
+
+
+startPeer();
+
+
+
+peer.on("open",async()=>{
+
+
+await set(
+
+ref(
+
+db,
+
+"rooms/"+roomCode+
+"/admin"
+
+),
+
+{
+
+
+peer:myPeerID,
+
+
+online:true
+
+
+}
+
+);
+
+
+
+showScreen("admin");
+
+
+
+document.getElementById("adminRoomText")
+.innerHTML=
+
+"Channel "+roomCode;
+
+
+
+sendMessage(
+
+"👑 ADMIN joined"
+
+);
+
+
+
+watchAdminPlayers();
+
+watchAdminChat();
+
+
+
+});
+
+
+};
+
+
+
+
+
+
+
+
+
+function watchAdminPlayers(){
 
 
 onValue(
@@ -1226,7 +1138,8 @@ ref(
 
 db,
 
-"rooms/"+roomCode+"/players"
+"rooms/"+roomCode+
+"/players"
 
 ),
 
@@ -1234,35 +1147,134 @@ db,
 snap=>{
 
 
-let players=snap.val();
+let box =
+document.getElementById("adminPlayers");
+
+
+box.innerHTML=
+"👥 Players<br>";
 
 
 
-if(!players)
-return;
+let data=snap.val();
 
 
 
-Object.values(players)
+if(data){
+
+
+Object.values(data)
 
 .forEach(p=>{
 
 
-if(
+box.innerHTML +=
 
-p.peer &&
 
-p.peer!==myPeerID
+(p.online?"🟢 ":"🔴 ")
 
-){
++p.name+
+
+"<br>";
+
+
+
+});
+
+
+}
+
+
+
+});
+
+
+}
+
+
+
+
+
+
+
+
+function watchAdminChat(){
+
+
+onValue(
+
+ref(
+
+db,
+
+"rooms/"+roomCode+
+"/messages"
+
+),
+
+
+snap=>{
+
+
+let box =
+document.getElementById("adminChat");
+
+
+box.innerHTML=
+"💬 Chat<br>";
+
+
+
+let data=snap.val();
+
+
+
+if(data){
+
+
+Object.values(data)
+
+.sort((a,b)=>a.time-b.time)
+
+.forEach(m=>{
+
+
+box.innerHTML +=
+
+m.text+
+"<br>";
+
+
+
+});
+
+
+}
+
+
+
+});
+
+
+}
+
+// =========================
+// VOICE CONNECTION
+// =========================
+
+
+function connectToPlayer(peerID){
+
+
+if(peerID===myPeerID)
+return;
 
 
 
 let call =
-
 peer.call(
 
-p.peer,
+peerID,
 
 stream
 
@@ -1276,6 +1288,53 @@ call.on("stream",audio=>{
 remoteAudio.srcObject=audio;
 
 
+});
+
+
+}
+
+
+
+
+
+
+
+function connectAllPlayers(){
+
+
+onValue(
+
+ref(
+
+db,
+
+"rooms/"+roomCode+
+"/players"
+
+),
+
+
+snap=>{
+
+
+let players=snap.val();
+
+
+
+if(players){
+
+
+Object.values(players)
+
+.forEach(p=>{
+
+
+if(p.peer){
+
+connectToPlayer(p.peer);
+
+}
+
 
 });
 
@@ -1287,11 +1346,18 @@ remoteAudio.srcObject=audio;
 });
 
 
-
-});
-
-
 }
+
+
+
+
+
+
+
+
+
+// PLAYER TALK BUTTON
+
 
 const talk =
 document.getElementById("talk");
@@ -1300,11 +1366,13 @@ document.getElementById("talk");
 
 function talkOn(){
 
+
 if(stream){
 
 stream.getAudioTracks()[0].enabled=true;
 
 }
+
 
 }
 
@@ -1312,33 +1380,22 @@ stream.getAudioTracks()[0].enabled=true;
 
 function talkOff(){
 
+
 if(stream){
 
 stream.getAudioTracks()[0].enabled=false;
 
 }
 
+
 }
 
 
 
+talk.onmousedown=talkOn;
 
 
-talk.onmousedown=()=>{
-
-talkOn();
-
-};
-
-
-
-talk.onmouseup=()=>{
-
-talkOff();
-
-};
-
-
+talk.onmouseup=talkOff;
 
 
 
@@ -1349,8 +1406,6 @@ e.preventDefault();
 talkOn();
 
 };
-
-
 
 
 
@@ -1368,6 +1423,68 @@ talkOff();
 
 
 
+
+// ADMIN TALK BUTTON
+
+
+const adminTalk =
+document.getElementById("adminTalk");
+
+
+
+adminTalk.onmousedown=()=>{
+
+
+stream.getAudioTracks()[0].enabled=true;
+
+
+
+};
+
+
+
+
+adminTalk.onmouseup=()=>{
+
+
+stream.getAudioTracks()[0].enabled=false;
+
+
+
+};
+
+
+
+
+
+
+adminTalk.ontouchstart=e=>{
+
+e.preventDefault();
+
+stream.getAudioTracks()[0].enabled=true;
+
+};
+
+
+
+adminTalk.ontouchend=e=>{
+
+e.preventDefault();
+
+stream.getAudioTracks()[0].enabled=false;
+
+};
+
+
+
+
+
+
+
+
+
+// PLAYER ALERT BUTTONS
 
 
 document.getElementById("emergency")
@@ -1388,8 +1505,6 @@ sendMessage(
 
 
 
-
-
 document.getElementById("dead")
 .onclick=()=>{
 
@@ -1402,8 +1517,6 @@ sendMessage(
 
 
 };
-
-
 
 
 
@@ -1431,33 +1544,87 @@ sendMessage(
 
 
 
-let muted=false;
+// ADMIN TEXT ANNOUNCEMENT
 
 
-
-document.getElementById("mute")
+document.getElementById("sendAnnouncement")
 .onclick=()=>{
 
 
-muted=!muted;
+let text =
+document.getElementById("announcement")
+.value;
 
 
-remoteAudio.muted=muted;
+
+if(text){
+
+
+sendMessage(
+
+"👑 ADMIN: "+text
+
+);
 
 
 
-document.getElementById("mute")
-.innerHTML=
+document.getElementById("announcement")
+.value="";
 
-muted ?
 
-"🔇 UNMUTE":
+}
 
-"🔊 MUTE";
 
 
 };
 
+// =========================
+// CONNECT ADMIN / PLAYERS
+// =========================
+
+
+// When admin joins, connect to players
+
+onValue(
+
+ref(
+
+db,
+
+"rooms/"+roomCode+"/players"
+
+),
+
+snap=>{
+
+
+let players=snap.val();
+
+
+if(players){
+
+
+Object.values(players)
+
+.forEach(p=>{
+
+
+if(p.peer && p.peer!==myPeerID){
+
+
+connectToPlayer(p.peer);
+
+
+}
+
+
+});
+
+
+}
+
+
+});
 
 
 
@@ -1466,14 +1633,59 @@ muted ?
 
 
 
-document.getElementById("exit")
-.onclick=async()=>{
+// When player joins, connect to admin
+
+onValue(
+
+ref(
+
+db,
+
+"rooms/"+roomCode+"/admin"
+
+),
+
+snap=>{
+
+
+let admin=snap.val();
+
+
+
+if(admin && admin.peer!==myPeerID){
+
+
+connectToPlayer(admin.peer);
+
+
+}
+
+
+
+});
+
+
+
+
+
+
+
+
+
+// Leave system
+
+window.addEventListener(
+
+"beforeunload",
+
+()=>{
 
 
 if(roomCode && playerID){
 
 
-await set(
+
+set(
 
 ref(
 
@@ -1487,13 +1699,16 @@ db,
 
 {
 
+
 name:playerName,
 
 peer:myPeerID,
 
 online:false
 
+
 }
+
 
 );
 
@@ -1511,18 +1726,14 @@ sendMessage(
 
 
 
-if(peer){
-
-peer.destroy();
-
 }
 
+);
 
 
-location.reload();
 
 
-};
+
 
 
 
