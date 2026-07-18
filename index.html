@@ -1,20 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Room Walkie Talkie</title>
+<title>Walkie Talkie</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-
 body {
     font-family: Arial;
-    text-align:center;
-    background:#222;
+    background:#202020;
     color:white;
+    text-align:center;
 }
 
-input, button {
+button,input {
     font-size:20px;
     padding:12px;
     margin:10px;
@@ -24,54 +23,42 @@ input, button {
     width:220px;
     height:220px;
     border-radius:50%;
-    border:none;
     background:red;
     color:white;
-    font-size:28px;
-    font-weight:bold;
+    font-size:30px;
 }
 
 #talk:active {
     background:green;
 }
 
-#status {
-    font-size:22px;
-}
-
 </style>
-
 </head>
-
 
 <body>
 
-<h1>🎙️ Room Walkie Talkie</h1>
+<h1>🎙️ Walkie Talkie</h1>
+
+<button onclick="createRoom()">Create Room</button>
+
+<h2 id="myRoom"></h2>
 
 
-<input id="room" placeholder="Enter Room Number">
+<input id="joinCode" placeholder="Room Code">
+
+<button onclick="joinRoom()">Join</button>
+
 
 <br>
 
-<button onclick="joinRoom()">
-Create / Join Room
-</button>
-
-
-<h2 id="roomDisplay">
-Not connected
-</h2>
-
-
 <button id="talk">
-HOLD<br>
-TO TALK
+HOLD<br>TO TALK
 </button>
 
 
-<p id="status">
+<h3 id="status">
 Waiting...
-</p>
+</h3>
 
 
 
@@ -80,32 +67,100 @@ Waiting...
 
 <script>
 
-
 let peer;
-let localStream;
-let connected=false;
+let myStream;
+let currentCall;
 
 
-// Get microphone
+
+// microphone
 
 navigator.mediaDevices.getUserMedia({
     audio:true
 })
-
 .then(stream=>{
 
-    localStream=stream;
+    myStream=stream;
 
-    // Start muted
-    localStream.getAudioTracks()[0].enabled=false;
+    // mute first
+    myStream.getAudioTracks()[0].enabled=false;
 
 })
+.catch(e=>{
+    alert("Microphone permission denied");
+});
 
-.catch(error=>{
 
-    alert("Microphone error: "+error);
+
+
+
+function createRoom(){
+
+    let code=Math.floor(
+        10000+Math.random()*90000
+    ).toString();
+
+
+    startPeer(code);
+
+
+}
+
+
+
+
+
+function startPeer(id){
+
+
+peer=new Peer(id);
+
+
+
+peer.on("open",()=>{
+
+document.getElementById("myRoom").innerHTML=
+"Room Code: "+id;
+
+document.getElementById("status").innerHTML=
+"Waiting for friend...";
+
 
 });
+
+
+
+
+
+peer.on("call",call=>{
+
+
+currentCall=call;
+
+
+call.answer(myStream);
+
+
+
+call.on("stream",stream=>{
+
+playAudio(stream);
+
+});
+
+
+
+document.getElementById("status").innerHTML=
+"Connected 🎧";
+
+
+});
+
+
+
+}
+
+
 
 
 
@@ -114,14 +169,13 @@ navigator.mediaDevices.getUserMedia({
 function joinRoom(){
 
 
-let room =
-document.getElementById("room").value.trim();
+let code=
+document.getElementById("joinCode").value;
 
 
+if(code==""){
 
-if(room==""){
-
-alert("Enter a room number");
+alert("Enter room code");
 
 return;
 
@@ -129,103 +183,35 @@ return;
 
 
 
-// Create Peer using room number
+startPeer(
+"guest-"+Math.floor(Math.random()*99999)
+);
 
-peer = new Peer("walkie-"+room);
-
-
-
-peer.on("open", id=>{
-
-
-document.getElementById("roomDisplay").innerHTML =
-"Room: "+room+"<br>ID: "+id;
-
-
-document.getElementById("status").innerHTML =
-"Waiting for someone...";
-
-
-
-});
-
-
-
-
-
-// If someone joins
-
-peer.on("call", incoming=>{
-
-
-document.getElementById("status").innerHTML =
-"Connected 🎧";
-
-
-incoming.answer(localStream);
-
-
-
-incoming.on("stream", stream=>{
-
-
-let audio=document.createElement("audio");
-
-audio.srcObject=stream;
-
-audio.autoplay=true;
-
-document.body.appendChild(audio);
-
-
-});
-
-
-
-});
-
-
-
-
-
-// Try connecting to another person in same room
 
 
 setTimeout(()=>{
 
 
-let call = peer.call(
-"walkie-"+room,
-localStream
+let call=peer.call(
+code,
+myStream
 );
 
 
-
-if(call){
-
-
-document.getElementById("status").innerHTML =
-"Connected 🎧";
+currentCall=call;
 
 
 
-call.on("stream", stream=>{
+call.on("stream",stream=>{
 
-
-let audio=document.createElement("audio");
-
-audio.srcObject=stream;
-
-audio.autoplay=true;
-
-document.body.appendChild(audio);
-
-
+playAudio(stream);
 
 });
 
 
-}
+
+document.getElementById("status").innerHTML=
+"Connected 🎧";
 
 
 },2000);
@@ -239,24 +225,42 @@ document.body.appendChild(audio);
 
 
 
+function playAudio(stream){
 
-// Push to talk button
+let audio=document.createElement("audio");
+
+audio.srcObject=stream;
+
+audio.autoplay=true;
+
+document.body.appendChild(audio);
+
+}
 
 
-let talk=document.getElementById("talk");
 
 
 
-function startTalking(){
 
-if(localStream){
 
-localStream
+
+// Push to talk
+
+
+let button=document.getElementById("talk");
+
+
+
+function talkOn(){
+
+if(myStream){
+
+myStream
 .getAudioTracks()[0]
 .enabled=true;
 
 
-document.getElementById("status").innerHTML =
+document.getElementById("status").innerHTML=
 "🎤 Talking";
 
 }
@@ -265,17 +269,16 @@ document.getElementById("status").innerHTML =
 
 
 
+function talkOff(){
 
-function stopTalking(){
+if(myStream){
 
-if(localStream){
-
-localStream
+myStream
 .getAudioTracks()[0]
 .enabled=false;
 
 
-document.getElementById("status").innerHTML =
+document.getElementById("status").innerHTML=
 "🔇 Listening";
 
 }
@@ -284,39 +287,23 @@ document.getElementById("status").innerHTML =
 
 
 
+button.onmousedown=talkOn;
+button.onmouseup=talkOff;
 
 
-// PC
-
-talk.onmousedown=startTalking;
-
-talk.onmouseup=stopTalking;
-
-
-// Mobile
-
-talk.ontouchstart=(e)=>{
-
+button.ontouchstart=(e)=>{
 e.preventDefault();
-
-startTalking();
-
+talkOn();
 };
 
 
-
-talk.ontouchend=(e)=>{
-
+button.ontouchend=(e)=>{
 e.preventDefault();
-
-stopTalking();
-
+talkOff();
 };
-
 
 
 </script>
-
 
 </body>
 </html>
