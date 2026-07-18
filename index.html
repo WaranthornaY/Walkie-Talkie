@@ -1,211 +1,211 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-<title>Game Walkie Talkie</title>
-
+<title>Walkie Talkie</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<style>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
+<style>
 body {
     font-family: Arial;
-    background:#222;
-    color:white;
-    text-align:center;
+    text-align: center;
+    background: #111;
+    color: white;
 }
 
-button,input {
-    font-size:20px;
-    padding:12px;
-    margin:8px;
+button {
+    font-size: 22px;
+    padding: 15px;
+    margin: 10px;
+    border-radius: 15px;
+}
+
+input {
+    font-size: 22px;
+    padding: 10px;
+    width: 200px;
 }
 
 #talk {
-    width:220px;
-    height:220px;
-    border-radius:50%;
+    background: green;
+    color:white;
+}
+
+#mute {
+    background: orange;
+}
+
+#exit {
     background:red;
     color:white;
-    font-size:30px;
-    border:none;
 }
-
-#talk:active {
-    background:green;
-}
-
-#controls {
-    display:none;
-}
-
-#gameMessage {
-    color:yellow;
-}
-
 </style>
 
 </head>
 
-
 <body>
 
+<h1>🎙️ Walkie Talkie</h1>
 
-<h1>🎮 Game Walkie Talkie</h1>
+<p id="status">Not connected</p>
 
+<input id="room" placeholder="Room number">
 
+<br>
 
-<div id="setup">
+<button onclick="host()">Create Room</button>
+<button onclick="join()">Join Room</button>
 
-<button onclick="createRoom()">
-Create Room
-</button>
-
-
-<h2 id="myRoom"></h2>
-
-
-<input id="joinCode" placeholder="Room Code">
+<h2 id="roomID"></h2>
 
 
-<button onclick="joinRoom()">
-Join Room
-</button>
-
-
-</div>
-
-
-
-
-
-<div id="controls">
-
+<hr>
 
 <button id="talk">
-🎤 HOLD
-<br>
-TO TALK
+🎤 Hold To Talk
 </button>
-
 
 <br>
 
-
-<button id="muteBtn" onclick="mute()">
-🔇 MUTE
+<button id="mute">
+🔊 Mute Speaker
 </button>
-
-
-
-<button onclick="sendEmergency()">
-🚨 EMERGENCY
-</button>
-
-
-
-<button onclick="sendDead()">
-💀 DEAD
-</button>
-
-
 
 <br>
 
-
-<button onclick="exitRoom()">
-🚪 EXIT ROOM
+<button id="exit">
+🚪 Exit Room
 </button>
 
 
-
-<h2 id="gameMessage"></h2>
-
-
-</div>
-
-
-
-
-<h3 id="status">
-Waiting...
-</h3>
-
-
-
-
-<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<audio id="audio" autoplay></audio>
 
 
 <script>
 
-
 let peer;
+let conn;
+let call;
 
-let myStream;
+let micStream;
+let remoteAudio = document.getElementById("audio");
 
-let currentCall;
-
-let remoteAudio;
-
-let dataConnection;
-
-let speakerMuted=false;
+let muted=false;
 
 
 
+async function getMic(){
+
+    try{
+
+        micStream =
+        await navigator.mediaDevices.getUserMedia({
+            audio:true
+        });
+
+        document.getElementById("status").innerHTML =
+        "Microphone ready";
+
+        return true;
+
+    }
+    catch(e){
+
+        alert(
+        "Please allow microphone permission"
+        );
+
+        return false;
+    }
+}
+
+
+
+function setupPeer(){
+
+    peer = new Peer();
+
+
+    peer.on("open", id=>{
+
+        document.getElementById("status").innerHTML =
+        "Connected to server";
+
+        return id;
+
+    });
+
+
+    peer.on("call", incoming=>{
+
+        incoming.answer(micStream);
+
+        incoming.on("stream", stream=>{
+
+            remoteAudio.srcObject=stream;
+
+        });
+
+        call=incoming;
+
+    });
+
+}
 
 
 
 
-// microphone
+async function host(){
+
+    if(!await getMic()) return;
 
 
-navigator.mediaDevices.getUserMedia({
-
-audio:true
-
-})
-
-.then(stream=>{
+    setupPeer();
 
 
-myStream=stream;
+    peer.on("open", id=>{
 
+        document.getElementById("roomID").innerHTML =
+        "Room ID: "+id;
 
-myStream
-.getAudioTracks()[0]
-.enabled=false;
+    });
 
-
-})
-
-.catch(()=>{
-
-alert("Microphone permission needed");
-
-});
+}
 
 
 
 
+async function join(){
+
+    if(!await getMic()) return;
 
 
+    let id =
+    document.getElementById("room").value;
 
 
-
-function createRoom(){
-
-
-let room =
-Math.floor(
-10000 + Math.random()*90000
-).toString();
+    setupPeer();
 
 
+    peer.on("open", myid=>{
 
-startPeer(room);
 
+        call =
+        peer.call(id,micStream);
+
+
+        call.on("stream",stream=>{
+
+            remoteAudio.srcObject=stream;
+
+        });
+
+
+        document.getElementById("status").innerHTML =
+        "Connected!";
+
+    });
 
 }
 
@@ -213,291 +213,43 @@ startPeer(room);
 
 
 
-
-
-
-
-function startPeer(id){
-
-
-peer=new Peer(id);
-
-
-
-peer.on("open",()=>{
-
-
-document.getElementById("myRoom").innerHTML =
-"Room Code: "+id;
-
-
-document.getElementById("status").innerHTML =
-"Waiting for player...";
-
-
-});
-
-
-
-
-
-
-
-// receive call
-
-
-peer.on("call",call=>{
-
-
-currentCall=call;
-
-
-call.answer(myStream);
-
-
-
-
-call.on("stream",stream=>{
-
-
-playAudio(stream);
-
-
-connected();
-
-
-});
-
-
-
-
-});
-
-
-
-
-
-
-
-
-// receive data connection
-
-
-peer.on("connection",conn=>{
-
-
-dataConnection=conn;
-
-
-dataConnection.on("data",receiveMessage);
-
-
-});
-
-
-
-}
-
-
-
-
-
-
-
-
-
-function joinRoom(){
-
-
-let room =
-document.getElementById("joinCode").value;
-
-
-
-if(room==""){
-
-alert("Enter room code");
-
-return;
-
-}
-
-
-
-let guestID =
-"guest-"+Math.floor(Math.random()*999999);
-
-
-
-startPeer(guestID);
-
-
-
-
-
-setTimeout(()=>{
-
-
-let call =
-peer.call(room,myStream);
-
-
-
-currentCall=call;
-
-
-
-call.on("stream",stream=>{
-
-
-playAudio(stream);
-
-
-connected();
-
-
-});
-
-
-
-
-// open text connection
-
-dataConnection =
-peer.connect(room);
-
-
-
-dataConnection.on("data",receiveMessage);
-
-
-
-},2000);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-function playAudio(stream){
-
-
-remoteAudio =
-document.createElement("audio");
-
-
-remoteAudio.srcObject=stream;
-
-
-remoteAudio.autoplay=true;
-
-
-document.body.appendChild(remoteAudio);
-
-
-}
-
-
-
-
-
-
-
-
-
-function connected(){
-
-
-document.getElementById("setup")
-.style.display="none";
-
-
-document.getElementById("controls")
-.style.display="block";
-
-
-document.getElementById("status")
-.innerHTML="Connected 🎧";
-
-
-}
-
-
-
-
-
-
-
-
-
-// HOLD TO TALK
-
-
-let talk =
+let talkButton =
 document.getElementById("talk");
 
 
+talkButton.onmousedown=()=>{
 
-function talkOn(){
+    if(micStream){
 
+        micStream.getAudioTracks()[0].enabled=true;
 
-myStream
-.getAudioTracks()[0]
-.enabled=true;
+    }
 
-
-document.getElementById("status")
-.innerHTML="🎤 Talking";
+};
 
 
-}
+talkButton.onmouseup=()=>{
 
+    if(micStream){
 
+        micStream.getAudioTracks()[0].enabled=false;
 
-function talkOff(){
-
-
-myStream
-.getAudioTracks()[0]
-.enabled=false;
-
-
-document.getElementById("status")
-.innerHTML="🔊 Listening";
-
-
-}
-
-
-
-talk.onmousedown=talkOn;
-
-talk.onmouseup=talkOff;
-
-
-
-talk.ontouchstart=(e)=>{
-
-e.preventDefault();
-
-talkOn();
+    }
 
 };
 
 
 
-talk.ontouchend=(e)=>{
+talkButton.ontouchstart=()=>{
 
-e.preventDefault();
+    micStream.getAudioTracks()[0].enabled=true;
 
-talkOff();
+};
+
+
+talkButton.ontouchend=()=>{
+
+    micStream.getAudioTracks()[0].enabled=false;
 
 };
 
@@ -505,149 +257,33 @@ talkOff();
 
 
 
+document.getElementById("mute").onclick=()=>{
 
+    muted=!muted;
 
+    remoteAudio.muted=muted;
 
 
-// speaker mute
+    document.getElementById("mute").innerHTML =
+    muted ?
+    "🔇 Unmute Speaker":
+    "🔊 Mute Speaker";
 
+};
 
-function mute(){
 
 
-speakerMuted=!speakerMuted;
 
 
+document.getElementById("exit").onclick=()=>{
 
-if(remoteAudio){
+    if(peer)
+        peer.destroy();
 
-remoteAudio.muted=speakerMuted;
 
-}
+    location.reload();
 
-
-
-if(speakerMuted){
-
-
-document.getElementById("muteBtn").innerHTML =
-"🔊 UNMUTE";
-
-
-}else{
-
-
-document.getElementById("muteBtn").innerHTML =
-"🔇 MUTE";
-
-
-}
-
-
-}
-
-
-
-
-
-
-
-
-
-// game messages
-
-
-function sendEmergency(){
-
-
-if(dataConnection && dataConnection.open){
-
-
-dataConnection.send(
-"🚨 PLAYER NEEDS HELP!"
-);
-
-
-document.getElementById("gameMessage").innerHTML =
-"🚨 SENT";
-
-
-}
-
-
-}
-
-
-
-
-
-
-
-function sendDead(){
-
-
-if(dataConnection && dataConnection.open){
-
-
-dataConnection.send(
-"💀 PLAYER IS DEAD!"
-);
-
-
-document.getElementById("gameMessage").innerHTML =
-"💀 SENT";
-
-
-}
-
-
-}
-
-
-
-
-
-
-
-function receiveMessage(message){
-
-
-document.getElementById("gameMessage").innerHTML =
-message;
-
-
-}
-
-
-
-
-
-
-
-
-
-function exitRoom(){
-
-
-if(currentCall){
-
-currentCall.close();
-
-}
-
-
-if(peer){
-
-peer.destroy();
-
-}
-
-
-location.reload();
-
-
-}
-
+};
 
 
 </script>
