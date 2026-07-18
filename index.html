@@ -16,16 +16,12 @@ body {
 }
 
 button,input {
-
     font-size:20px;
     padding:12px;
     margin:10px;
-
 }
 
-
 #talk {
-
     width:220px;
     height:220px;
     border-radius:50%;
@@ -33,23 +29,15 @@ button,input {
     color:white;
     font-size:30px;
     border:none;
-
 }
-
 
 #talk:active {
-
     background:green;
-
 }
-
 
 #controls {
-
     display:none;
-
 }
-
 
 </style>
 
@@ -58,70 +46,52 @@ button,input {
 
 <body>
 
-
 <h1>🎙️ Walkie Talkie</h1>
 
 
-
 <div id="setup">
-
 
 <button onclick="createRoom()">
 Create Room
 </button>
 
-
-<h2 id="myRoom">
-</h2>
-
+<h2 id="myRoom"></h2>
 
 
 <input id="joinCode" placeholder="Room Code">
-
 
 <button onclick="joinRoom()">
 Join Room
 </button>
 
-
 </div>
-
 
 
 
 
 <div id="controls">
 
-
 <button id="talk">
-
 🎤 HOLD
 <br>
 TO TALK
-
 </button>
 
 
 <br>
 
 
-<button onclick="mute()">
-
+<button id="muteBtn" onclick="mute()">
 🔇 MUTE
-
 </button>
 
 
 <button onclick="exitRoom()">
-
 🚪 EXIT ROOM
-
 </button>
 
 
 </div>
-
-
 
 
 
@@ -131,11 +101,7 @@ Waiting...
 
 
 
-
-
-
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-
 
 
 <script>
@@ -147,7 +113,9 @@ let myStream;
 
 let currentCall;
 
-let connected=false;
+let remoteAudio;
+
+let speakerMuted=false;
 
 
 
@@ -168,7 +136,7 @@ navigator.mediaDevices.getUserMedia({
     myStream=stream;
 
 
-    // start muted
+    // Start muted
 
     myStream
     .getAudioTracks()[0]
@@ -179,9 +147,7 @@ navigator.mediaDevices.getUserMedia({
 
 .catch(()=>{
 
-
-alert("Please allow microphone access");
-
+    alert("Microphone permission denied");
 
 });
 
@@ -197,13 +163,11 @@ function createRoom(){
 let room =
 Math.floor(
 10000 + Math.random()*90000
-)
-.toString();
+).toString();
 
 
 
 startPeer(room);
-
 
 
 }
@@ -232,10 +196,11 @@ document.getElementById("myRoom").innerHTML=
 
 document.getElementById("status").innerHTML=
 
-"Waiting for someone...";
+"Waiting for friend...";
 
 
 });
+
 
 
 
@@ -258,7 +223,7 @@ call.on("stream",stream=>{
 playAudio(stream);
 
 
-connectedScreen();
+connected();
 
 
 });
@@ -295,10 +260,6 @@ return;
 
 
 
-
-
-// create random guest id
-
 let guestID =
 "guest-"+Math.floor(Math.random()*999999);
 
@@ -308,16 +269,11 @@ startPeer(guestID);
 
 
 
-
-
 setTimeout(()=>{
 
 
 let call =
-peer.call(
-room,
-myStream
-);
+peer.call(room,myStream);
 
 
 
@@ -331,19 +287,19 @@ call.on("stream",stream=>{
 playAudio(stream);
 
 
-connectedScreen();
+connected();
 
 
 });
-
 
 
 },2000);
 
 
 
-
 }
+
+
 
 
 
@@ -354,18 +310,17 @@ connectedScreen();
 function playAudio(stream){
 
 
-let audio =
+remoteAudio =
 document.createElement("audio");
 
 
-audio.srcObject=stream;
+remoteAudio.srcObject=stream;
 
 
-audio.autoplay=true;
+remoteAudio.autoplay=true;
 
 
-document.body.appendChild(audio);
-
+document.body.appendChild(remoteAudio);
 
 
 }
@@ -377,8 +332,7 @@ document.body.appendChild(audio);
 
 
 
-
-function connectedScreen(){
+function connected(){
 
 
 document.getElementById("setup")
@@ -387,7 +341,6 @@ document.getElementById("setup")
 
 document.getElementById("controls")
 .style.display="block";
-
 
 
 document.getElementById("status")
@@ -404,7 +357,8 @@ document.getElementById("status")
 
 
 
-// TALK BUTTON
+
+// HOLD TO TALK
 
 
 let talk =
@@ -448,7 +402,7 @@ myStream
 
 
 document.getElementById("status")
-.innerHTML="🔇 Listening";
+.innerHTML="🔊 Listening";
 
 
 }
@@ -491,25 +445,53 @@ talkOff();
 
 
 
+// SPEAKER MUTE
+
+
 function mute(){
 
 
-if(myStream){
+speakerMuted=!speakerMuted;
 
 
-myStream
-.getAudioTracks()[0]
-.enabled=false;
+
+if(remoteAudio){
+
+remoteAudio.muted=speakerMuted;
+
+}
+
+
+
+if(speakerMuted){
+
+
+document.getElementById("muteBtn")
+.innerHTML="🔊 UNMUTE";
 
 
 document.getElementById("status")
-.innerHTML="🔇 Muted";
+.innerHTML="🔇 Speaker Muted";
+
+
+}
+
+else{
+
+
+document.getElementById("muteBtn")
+.innerHTML="🔇 MUTE";
+
+
+document.getElementById("status")
+.innerHTML="🔊 Speaker On";
 
 
 }
 
 
 }
+
 
 
 
@@ -539,40 +521,17 @@ peer.destroy();
 
 
 
-
 if(myStream){
-
 
 myStream
 .getTracks()
 .forEach(track=>track.stop());
 
-
 }
 
 
 
-
-
-document.getElementById("setup")
-.style.display="block";
-
-
-document.getElementById("controls")
-.style.display="none";
-
-
-document.getElementById("myRoom")
-.innerHTML="";
-
-
-document.getElementById("status")
-.innerHTML="Disconnected";
-
-
-
 location.reload();
-
 
 
 }
