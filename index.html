@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Room Walkie Talkie</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body {
+    font-family: Arial;
+    text-align:center;
+    background:#222;
+    color:white;
+}
+
+input, button {
+    font-size:20px;
+    padding:12px;
+    margin:10px;
+}
+
+#talk {
+    width:220px;
+    height:220px;
+    border-radius:50%;
+    border:none;
+    background:red;
+    color:white;
+    font-size:28px;
+    font-weight:bold;
+}
+
+#talk:active {
+    background:green;
+}
+
+#status {
+    font-size:22px;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<h1>🎙️ Room Walkie Talkie</h1>
+
+
+<input id="room" placeholder="Enter Room Number">
+
+<br>
+
+<button onclick="joinRoom()">
+Create / Join Room
+</button>
+
+
+<h2 id="roomDisplay">
+Not connected
+</h2>
+
+
+<button id="talk">
+HOLD<br>
+TO TALK
+</button>
+
+
+<p id="status">
+Waiting...
+</p>
+
+
+
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+
+
+<script>
+
+
+let peer;
+let localStream;
+let connected=false;
+
+
+// Get microphone
+
+navigator.mediaDevices.getUserMedia({
+    audio:true
+})
+
+.then(stream=>{
+
+    localStream=stream;
+
+    // Start muted
+    localStream.getAudioTracks()[0].enabled=false;
+
+})
+
+.catch(error=>{
+
+    alert("Microphone error: "+error);
+
+});
+
+
+
+
+
+function joinRoom(){
+
+
+let room =
+document.getElementById("room").value.trim();
+
+
+
+if(room==""){
+
+alert("Enter a room number");
+
+return;
+
+}
+
+
+
+// Create Peer using room number
+
+peer = new Peer("walkie-"+room);
+
+
+
+peer.on("open", id=>{
+
+
+document.getElementById("roomDisplay").innerHTML =
+"Room: "+room+"<br>ID: "+id;
+
+
+document.getElementById("status").innerHTML =
+"Waiting for someone...";
+
+
+
+});
+
+
+
+
+
+// If someone joins
+
+peer.on("call", incoming=>{
+
+
+document.getElementById("status").innerHTML =
+"Connected 🎧";
+
+
+incoming.answer(localStream);
+
+
+
+incoming.on("stream", stream=>{
+
+
+let audio=document.createElement("audio");
+
+audio.srcObject=stream;
+
+audio.autoplay=true;
+
+document.body.appendChild(audio);
+
+
+});
+
+
+
+});
+
+
+
+
+
+// Try connecting to another person in same room
+
+
+setTimeout(()=>{
+
+
+let call = peer.call(
+"walkie-"+room,
+localStream
+);
+
+
+
+if(call){
+
+
+document.getElementById("status").innerHTML =
+"Connected 🎧";
+
+
+
+call.on("stream", stream=>{
+
+
+let audio=document.createElement("audio");
+
+audio.srcObject=stream;
+
+audio.autoplay=true;
+
+document.body.appendChild(audio);
+
+
+
+});
+
+
+}
+
+
+},2000);
+
+
+
+}
+
+
+
+
+
+
+
+// Push to talk button
+
+
+let talk=document.getElementById("talk");
+
+
+
+function startTalking(){
+
+if(localStream){
+
+localStream
+.getAudioTracks()[0]
+.enabled=true;
+
+
+document.getElementById("status").innerHTML =
+"🎤 Talking";
+
+}
+
+}
+
+
+
+
+function stopTalking(){
+
+if(localStream){
+
+localStream
+.getAudioTracks()[0]
+.enabled=false;
+
+
+document.getElementById("status").innerHTML =
+"🔇 Listening";
+
+}
+
+}
+
+
+
+
+
+// PC
+
+talk.onmousedown=startTalking;
+
+talk.onmouseup=stopTalking;
+
+
+// Mobile
+
+talk.ontouchstart=(e)=>{
+
+e.preventDefault();
+
+startTalking();
+
+};
+
+
+
+talk.ontouchend=(e)=>{
+
+e.preventDefault();
+
+stopTalking();
+
+};
+
+
+
+</script>
+
+
+</body>
+</html>
