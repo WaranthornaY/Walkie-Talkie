@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
+
 <title>Game Walkie Talkie</title>
+
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -15,8 +17,12 @@ body{
     text-align:center;
 }
 
-h1{
-    font-size:32px;
+input{
+    font-size:20px;
+    padding:10px;
+    width:200px;
+    text-align:center;
+    margin:5px;
 }
 
 button{
@@ -27,13 +33,6 @@ button{
     border:none;
 }
 
-input{
-    font-size:22px;
-    padding:10px;
-    width:180px;
-    text-align:center;
-}
-
 #talk{
     width:200px;
     height:200px;
@@ -42,22 +41,12 @@ input{
     color:white;
     font-size:35px;
     font-weight:bold;
-    user-select:none;
     touch-action:none;
 }
 
 #talk:active{
     transform:scale(0.9);
     background:red;
-}
-
-#mute{
-    background:orange;
-}
-
-#exit{
-    background:red;
-    color:white;
 }
 
 #create{
@@ -70,6 +59,42 @@ input{
     color:white;
 }
 
+#emergency{
+    background:red;
+    color:white;
+}
+
+#dead{
+    background:black;
+    color:white;
+}
+
+#alive{
+    background:green;
+    color:white;
+}
+
+#mute{
+    background:orange;
+}
+
+#exit{
+    background:#900;
+    color:white;
+}
+
+
+#messageBox{
+
+    background:#222;
+    padding:15px;
+    margin:20px;
+    border-radius:15px;
+    min-height:50px;
+
+}
+
+
 </style>
 
 </head>
@@ -78,12 +103,13 @@ input{
 <body>
 
 
-<h1>🎙️ Game Walkie Talkie</h1>
+<h1>🎮 Game Radio</h1>
 
 
-<h2 id="status">
-Disconnected
-</h2>
+<input id="name" placeholder="Player Name">
+
+
+<br>
 
 
 <input id="room" placeholder="Room Code">
@@ -105,6 +131,16 @@ Join Room
 <h2 id="code"></h2>
 
 
+<h2 id="status">
+Disconnected
+</h2>
+
+
+<div id="messageBox">
+Waiting...
+</div>
+
+
 <hr>
 
 
@@ -117,30 +153,40 @@ TALK
 <br>
 
 
-<button id="mute">
-🔊 Mute Speaker
+<button id="emergency">
+🚨 EMERGENCY
+</button>
+
+
+<button id="dead">
+💀 DEAD
+</button>
+
+
+<button id="alive">
+✅ ALIVE
 </button>
 
 
 <br>
 
 
+<button id="mute">
+🔊 Mute Speaker
+</button>
+
+
 <button id="exit">
-🚪 Exit Room
+🚪 Exit
 </button>
 
 
 <audio id="audio" autoplay></audio>
-
-
-
 <script type="module">
-
 
 import { initializeApp }
 from
 "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
 
 import {
 getDatabase,
@@ -152,7 +198,6 @@ remove
 }
 from
 "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
 
 
 const firebaseConfig = {
@@ -179,6 +224,7 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 
+
 let peer;
 
 let stream;
@@ -187,191 +233,159 @@ let call;
 
 let roomCode;
 
+let playerName;
+
+
 let remoteAudio =
 document.getElementById("audio");
 
+
+let messageBox =
+document.getElementById("messageBox");
+
+
+
+
+
 async function getMic(){
 
-    stream = await navigator.mediaDevices.getUserMedia({
+    stream =
+    await navigator.mediaDevices.getUserMedia({
         audio:true
     });
 
-    stream.getAudioTracks()[0].enabled = false;
 
-    document.getElementById("status").innerHTML =
-    "Microphone ready";
+    stream.getAudioTracks()[0].enabled=false;
+
 }
 
 
 
-function createPeer(){
+
+
+
+function startPeer(){
+
 
     peer = new Peer();
 
-    peer.on("call", incoming => {
+
+
+    peer.on("call",incoming=>{
+
 
         incoming.answer(stream);
 
-        incoming.on("stream", audio => {
 
-            remoteAudio.srcObject = audio;
+        incoming.on("stream",audio=>{
+
+            remoteAudio.srcObject=audio;
 
         });
 
-        call = incoming;
+
+        call=incoming;
+
 
     });
+
 
 }
 
 
 
-function makeRoom(){
+
+
+function randomRoom(){
 
     return Math.floor(
-        1000 + Math.random() * 9000
+        1000 + Math.random()*9000
     );
 
 }
 
 
 
-document.getElementById("create").onclick = async()=>{
 
 
-    await getMic();
 
 
-    createPeer();
+function showMessage(text){
 
+    messageBox.innerHTML=text;
 
-    peer.on("open", async id=>{
+}
 
 
-        roomCode = makeRoom();
 
 
-        await set(
-            ref(db,"rooms/"+roomCode),
-            {
-                host:id
-            }
-        );
 
 
-        document.getElementById("code").innerHTML =
-        "Room: " + roomCode;
 
 
-        document.getElementById("status").innerHTML =
-        "Waiting for player";
+document.getElementById("create").onclick =
+async()=>{
 
 
-        onValue(
-            ref(db,"rooms/"+roomCode+"/guest"),
-            snap=>{
+playerName =
+document.getElementById("name").value;
 
 
-                let guest = snap.val();
+if(playerName==""){
 
+alert("Enter name");
 
-                if(guest){
+return;
 
+}
 
-                    call = peer.call(
-                        guest,
-                        stream
-                    );
 
 
-                    call.on("stream", audio=>{
+await getMic();
 
-                        remoteAudio.srcObject = audio;
 
-                    });
+startPeer();
 
 
-                    document.getElementById("status").innerHTML =
-                    "Connected";
 
-                }
+peer.on("open",async id=>{
 
 
-            }
-        );
+roomCode=randomRoom();
 
 
-    });
 
+await set(
+ref(db,"rooms/"+roomCode),
+{
 
-};
+host:id,
 
+hostName:playerName,
 
+status:"online"
 
+}
+);
 
 
 
-document.getElementById("join").onclick = async()=>{
+document.getElementById("code").innerHTML =
+"Room: "+roomCode;
 
 
-    await getMic();
 
+document.getElementById("status").innerHTML =
+"Waiting for player";
 
-    roomCode =
-    document.getElementById("room").value;
 
 
-    let room =
-    await get(
-        ref(db,"rooms/"+roomCode)
-    );
+watchRoom();
 
 
-    if(!room.exists()){
 
-        alert("Room not found");
+});
 
-        return;
-
-    }
-
-
-
-    createPeer();
-
-
-
-    peer.on("open", async id=>{
-
-
-        await set(
-            ref(db,"rooms/"+roomCode+"/guest"),
-            id
-        );
-
-
-
-        call =
-        peer.call(
-            room.val().host,
-            stream
-        );
-
-
-
-        call.on("stream", audio=>{
-
-            remoteAudio.srcObject = audio;
-
-        });
-
-
-
-        document.getElementById("status").innerHTML =
-        "Connected";
-
-
-    });
 
 
 };
@@ -383,16 +397,179 @@ document.getElementById("join").onclick = async()=>{
 
 
 
-let talk =
+
+function watchRoom(){
+
+
+onValue(
+ref(db,"rooms/"+roomCode),
+snap=>{
+
+
+let data=snap.val();
+
+
+
+if(!data)
+return;
+
+
+
+if(data.guest){
+
+
+call =
+peer.call(
+data.guest,
+stream
+);
+
+
+
+call.on("stream",audio=>{
+
+remoteAudio.srcObject=audio;
+
+});
+
+
+
+document.getElementById("status")
+.innerHTML=
+"🟢 Connected";
+
+
+
+}
+
+
+
+if(data.message){
+
+
+showMessage(
+data.message
+);
+
+
+}
+
+
+});
+
+}
+
+
+
+
+
+
+
+
+document.getElementById("join").onclick =
+async()=>{
+
+
+playerName =
+document.getElementById("name").value;
+
+
+if(playerName==""){
+
+alert("Enter name");
+
+return;
+
+}
+
+
+
+await getMic();
+
+
+roomCode =
+document.getElementById("room").value;
+
+
+
+let room =
+await get(
+ref(db,"rooms/"+roomCode)
+);
+
+
+
+if(!room.exists()){
+
+alert("Room not found");
+
+return;
+
+}
+
+
+
+startPeer();
+
+
+
+peer.on("open",async id=>{
+
+
+await set(
+ref(db,"rooms/"+roomCode+"/guest"),
+id
+);
+
+
+
+await set(
+ref(db,"rooms/"+roomCode+"/guestName"),
+playerName
+);
+
+
+
+call =
+peer.call(
+room.val().host,
+stream
+);
+
+
+
+call.on("stream",audio=>{
+
+remoteAudio.srcObject=audio;
+
+});
+
+
+
+document.getElementById("status")
+.innerHTML=
+"🟢 Connected";
+
+
+
+watchRoom();
+
+
+});
+
+
+
+};
+
+const talk =
 document.getElementById("talk");
-
 
 
 function talkOn(){
 
     if(stream){
 
-        stream.getAudioTracks()[0].enabled = true;
+        stream.getAudioTracks()[0].enabled=true;
 
     }
 
@@ -404,7 +581,7 @@ function talkOff(){
 
     if(stream){
 
-        stream.getAudioTracks()[0].enabled = false;
+        stream.getAudioTracks()[0].enabled=false;
 
     }
 
@@ -412,12 +589,13 @@ function talkOff(){
 
 
 
-talk.onmousedown = talkOn;
 
-talk.onmouseup = talkOff;
+talk.onmousedown=talkOn;
+
+talk.onmouseup=talkOff;
 
 
-talk.ontouchstart = e=>{
+talk.ontouchstart=e=>{
 
     e.preventDefault();
 
@@ -427,7 +605,7 @@ talk.ontouchstart = e=>{
 
 
 
-talk.ontouchend = e=>{
+talk.ontouchend=e=>{
 
     e.preventDefault();
 
@@ -441,23 +619,85 @@ talk.ontouchend = e=>{
 
 
 
-let muted = false;
+
+async function sendMessage(msg){
 
 
-document.getElementById("mute").onclick = ()=>{
-
-
-    muted = !muted;
-
-
-    remoteAudio.muted = muted;
+if(!roomCode)
+return;
 
 
 
-    document.getElementById("mute").innerHTML =
-    muted ?
-    "🔇 Unmute Speaker" :
-    "🔊 Mute Speaker";
+await set(
+ref(db,"rooms/"+roomCode+"/message"),
+playerName+" "+msg
+);
+
+
+
+}
+
+
+
+
+
+
+document.getElementById("emergency").onclick=()=>{
+
+sendMessage(
+"🚨 NEEDS HELP!"
+);
+
+};
+
+
+
+
+
+document.getElementById("dead").onclick=()=>{
+
+sendMessage(
+"💀 IS DEAD"
+);
+
+};
+
+
+
+
+
+document.getElementById("alive").onclick=()=>{
+
+sendMessage(
+"✅ IS ALIVE"
+);
+
+};
+
+
+
+
+
+
+
+
+let muted=false;
+
+
+document.getElementById("mute").onclick=()=>{
+
+
+muted=!muted;
+
+
+remoteAudio.muted=muted;
+
+
+
+document.getElementById("mute").innerHTML =
+muted ?
+"🔇 Unmute Speaker" :
+"🔊 Mute Speaker";
 
 
 };
@@ -469,35 +709,38 @@ document.getElementById("mute").onclick = ()=>{
 
 
 
-document.getElementById("exit").onclick = async()=>{
+
+document.getElementById("exit").onclick=async()=>{
 
 
-    if(roomCode){
+if(roomCode){
 
-        await remove(
-            ref(db,"rooms/"+roomCode)
-        );
+await remove(
+ref(db,"rooms/"+roomCode)
+);
 
-    }
-
-
-
-    if(peer){
-
-        peer.destroy();
-
-    }
+}
 
 
 
-    location.reload();
+if(peer){
+
+peer.destroy();
+
+}
+
+
+
+location.reload();
 
 
 };
+
 
 
 </script>
 
 
 </body>
+
 </html>
