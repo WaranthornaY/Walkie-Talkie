@@ -50,7 +50,9 @@ button,input {
 
 <body>
 
+
 <h1>🎮 Game Walkie Talkie</h1>
+
 
 
 <div id="setup">
@@ -59,14 +61,17 @@ button,input {
 Create Room
 </button>
 
+
 <h2 id="myRoom"></h2>
 
 
 <input id="joinCode" placeholder="Room Code">
 
+
 <button onclick="joinRoom()">
 Join Room
 </button>
+
 
 </div>
 
@@ -92,14 +97,17 @@ TO TALK
 </button>
 
 
+
 <button onclick="sendEmergency()">
 🚨 EMERGENCY
 </button>
 
 
+
 <button onclick="sendDead()">
 💀 DEAD
 </button>
+
 
 
 <br>
@@ -110,6 +118,7 @@ TO TALK
 </button>
 
 
+
 <h2 id="gameMessage"></h2>
 
 
@@ -117,10 +126,10 @@ TO TALK
 
 
 
+
 <h3 id="status">
 Waiting...
 </h3>
-
 
 
 
@@ -147,7 +156,10 @@ let speakerMuted=false;
 
 
 
+
+
 // microphone
+
 
 navigator.mediaDevices.getUserMedia({
 
@@ -188,8 +200,7 @@ function createRoom(){
 let room =
 Math.floor(
 10000 + Math.random()*90000
-)
-.toString();
+).toString();
 
 
 
@@ -197,6 +208,7 @@ startPeer(room);
 
 
 }
+
 
 
 
@@ -229,7 +241,10 @@ document.getElementById("status").innerHTML =
 
 
 
-// Receive voice call
+
+
+// receive call
+
 
 peer.on("call",call=>{
 
@@ -238,6 +253,7 @@ currentCall=call;
 
 
 call.answer(myStream);
+
 
 
 
@@ -254,14 +270,26 @@ connected();
 
 
 
-// data messages
 
-dataConnection =
-peer.connect(call.peer);
+});
+
+
+
+
+
+
+
+
+// receive data connection
+
+
+peer.on("connection",conn=>{
+
+
+dataConnection=conn;
 
 
 dataConnection.on("data",receiveMessage);
-
 
 
 });
@@ -305,6 +333,8 @@ startPeer(guestID);
 
 
 
+
+
 setTimeout(()=>{
 
 
@@ -330,10 +360,12 @@ connected();
 
 
 
-// send messages
+
+// open text connection
 
 dataConnection =
 peer.connect(room);
+
 
 
 dataConnection.on("data",receiveMessage);
@@ -405,7 +437,7 @@ document.getElementById("status")
 
 
 
-// Push to talk
+// HOLD TO TALK
 
 
 let talk =
@@ -438,7 +470,7 @@ myStream
 
 
 document.getElementById("status")
-.innerHTML="Listening";
+.innerHTML="🔊 Listening";
 
 
 }
@@ -450,6 +482,7 @@ talk.onmousedown=talkOn;
 talk.onmouseup=talkOff;
 
 
+
 talk.ontouchstart=(e)=>{
 
 e.preventDefault();
@@ -457,6 +490,7 @@ e.preventDefault();
 talkOn();
 
 };
+
 
 
 talk.ontouchend=(e)=>{
@@ -475,13 +509,14 @@ talkOff();
 
 
 
-// Speaker mute
+// speaker mute
 
 
 function mute(){
 
 
 speakerMuted=!speakerMuted;
+
 
 
 if(remoteAudio){
@@ -495,15 +530,15 @@ remoteAudio.muted=speakerMuted;
 if(speakerMuted){
 
 
-document.getElementById("muteBtn")
-.innerHTML="🔊 UNMUTE";
+document.getElementById("muteBtn").innerHTML =
+"🔊 UNMUTE";
 
 
 }else{
 
 
-document.getElementById("muteBtn")
-.innerHTML="🔇 MUTE";
+document.getElementById("muteBtn").innerHTML =
+"🔇 MUTE";
 
 
 }
@@ -519,48 +554,66 @@ document.getElementById("muteBtn")
 
 
 
-// Game messages
+// game messages
 
 
 function sendEmergency(){
 
 
-if(dataConnection){
+if(dataConnection && dataConnection.open){
+
 
 dataConnection.send(
 "🚨 PLAYER NEEDS HELP!"
 );
 
 
+document.getElementById("gameMessage").innerHTML =
+"🚨 SENT";
+
+
 }
 
 
 }
+
+
+
+
 
 
 
 function sendDead(){
 
 
-if(dataConnection){
+if(dataConnection && dataConnection.open){
+
 
 dataConnection.send(
 "💀 PLAYER IS DEAD!"
 );
 
 
+document.getElementById("gameMessage").innerHTML =
+"💀 SENT";
+
+
 }
 
 
 }
+
+
+
+
 
 
 
 function receiveMessage(message){
 
 
-document.getElementById("gameMessage")
-.innerHTML=message;
+document.getElementById("gameMessage").innerHTML =
+message;
 
 
 }
