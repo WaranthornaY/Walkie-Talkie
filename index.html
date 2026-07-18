@@ -2,7 +2,7 @@
 <html>
 <head>
 
-<title>Game Walkie Talkie</title>
+<title>Game Radio</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -11,18 +11,18 @@
 <style>
 
 body{
-    font-family:Arial;
     background:#111;
     color:white;
+    font-family:Arial;
     text-align:center;
 }
 
 input{
     font-size:20px;
     padding:10px;
-    width:200px;
-    text-align:center;
+    width:220px;
     margin:5px;
+    text-align:center;
 }
 
 button{
@@ -33,64 +33,87 @@ button{
     border:none;
 }
 
-#talk{
-    width:200px;
-    height:200px;
-    border-radius:50%;
-    background:green;
-    color:white;
-    font-size:35px;
-    font-weight:bold;
-    touch-action:none;
-}
-
-#talk:active{
-    transform:scale(0.9);
-    background:red;
-}
 
 #create{
     background:#2196f3;
     color:white;
 }
 
+
 #join{
     background:#673ab7;
     color:white;
 }
+
+
+#talk{
+
+    width:200px;
+    height:200px;
+    border-radius:50%;
+    background:#00aa00;
+    color:white;
+    font-size:35px;
+    font-weight:bold;
+
+    touch-action:none;
+}
+
+
+#talk:active{
+
+    background:red;
+    transform:scale(0.9);
+
+}
+
 
 #emergency{
     background:red;
     color:white;
 }
 
+
 #dead{
+
     background:black;
     color:white;
+
 }
+
 
 #alive{
+
     background:green;
     color:white;
+
 }
+
 
 #mute{
+
     background:orange;
+
 }
+
 
 #exit{
-    background:#900;
+
+    background:#990000;
     color:white;
+
 }
 
 
-#messageBox{
+#chat{
 
     background:#222;
-    padding:15px;
-    margin:20px;
     border-radius:15px;
-    min-height:50px;
+    padding:15px;
+    height:250px;
+    overflow-y:auto;
+    text-align:left;
+    margin:15px;
 
 }
 
@@ -103,14 +126,12 @@ button{
 <body>
 
 
-<h1>🎮 Game Radio</h1>
+<h1>🎮 GAME RADIO</h1>
 
 
 <input id="name" placeholder="Player Name">
 
-
 <br>
-
 
 <input id="room" placeholder="Room Code">
 
@@ -128,15 +149,16 @@ Join Room
 </button>
 
 
-<h2 id="code"></h2>
+<h2 id="roomDisplay"></h2>
 
 
-<h2 id="status">
+<h3 id="status">
 Disconnected
-</h2>
+</h3>
 
 
-<div id="messageBox">
+
+<div id="chat">
 Waiting...
 </div>
 
@@ -154,7 +176,7 @@ TALK
 
 
 <button id="emergency">
-🚨 EMERGENCY
+🚨 NEED HELP
 </button>
 
 
@@ -172,13 +194,14 @@ TALK
 
 
 <button id="mute">
-🔊 Mute Speaker
+🔊 Mute
 </button>
 
 
 <button id="exit">
 🚪 Exit
 </button>
+
 
 
 <audio id="audio" autoplay></audio>
@@ -188,16 +211,19 @@ import { initializeApp }
 from
 "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
+
 import {
 getDatabase,
 ref,
 set,
 get,
+push,
 onValue,
 remove
 }
 from
 "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
 
 
 const firebaseConfig = {
@@ -219,9 +245,13 @@ appId:"1:410149019048:web:5e5b3bd589613119d8d19d"
 };
 
 
-const app = initializeApp(firebaseConfig);
 
-const db = getDatabase(app);
+const app =
+initializeApp(firebaseConfig);
+
+
+const db =
+getDatabase(app);
 
 
 
@@ -235,13 +265,29 @@ let roomCode;
 
 let playerName;
 
-
 let remoteAudio =
 document.getElementById("audio");
 
 
-let messageBox =
-document.getElementById("messageBox");
+let chat =
+document.getElementById("chat");
+
+
+
+
+
+
+function addChat(text){
+
+    let p=document.createElement("p");
+
+    p.innerHTML=text;
+
+    chat.appendChild(p);
+
+    chat.scrollTop=chat.scrollHeight;
+
+}
 
 
 
@@ -267,8 +313,7 @@ async function getMic(){
 function startPeer(){
 
 
-    peer = new Peer();
-
+    peer=new Peer();
 
 
     peer.on("call",incoming=>{
@@ -296,7 +341,9 @@ function startPeer(){
 
 
 
-function randomRoom(){
+
+
+function newRoom(){
 
     return Math.floor(
         1000 + Math.random()*9000
@@ -310,12 +357,75 @@ function randomRoom(){
 
 
 
-function showMessage(text){
+async function sendEvent(message){
 
-    messageBox.innerHTML=text;
+
+    await push(
+
+        ref(
+            db,
+            "rooms/"+roomCode+"/messages"
+        ),
+
+        {
+            text:message,
+            time:Date.now()
+        }
+
+    );
+
 
 }
 
+
+
+
+
+
+
+function listenChat(){
+
+
+onValue(
+
+ref(
+db,
+"rooms/"+roomCode+"/messages"
+),
+
+snap=>{
+
+
+chat.innerHTML="";
+
+
+let data=snap.val();
+
+
+
+if(data){
+
+
+Object.values(data)
+
+.sort((a,b)=>a.time-b.time)
+
+.forEach(m=>{
+
+addChat(m.text);
+
+});
+
+
+}
+
+
+
+});
+
+
+
+}
 
 
 
@@ -331,7 +441,8 @@ playerName =
 document.getElementById("name").value;
 
 
-if(playerName==""){
+
+if(!playerName){
 
 alert("Enter name");
 
@@ -351,37 +462,51 @@ startPeer();
 peer.on("open",async id=>{
 
 
-roomCode=randomRoom();
+roomCode=newRoom();
 
 
 
 await set(
-ref(db,"rooms/"+roomCode),
+
+ref(
+db,
+"rooms/"+roomCode
+),
+
 {
 
-host:id,
-
-hostName:playerName,
-
-status:"online"
+host:id
 
 }
+
 );
 
 
 
-document.getElementById("code").innerHTML =
+
+document.getElementById("roomDisplay")
+.innerHTML=
 "Room: "+roomCode;
 
 
 
-document.getElementById("status").innerHTML =
-"Waiting for player";
+document.getElementById("status")
+.innerHTML=
+"Waiting";
 
 
 
-watchRoom();
+await sendEvent(
+"🟢 "+playerName+" joined"
+);
 
+
+
+listenChat();
+
+
+
+watchPlayer();
 
 
 });
@@ -396,31 +521,28 @@ watchRoom();
 
 
 
-
-
-function watchRoom(){
+function watchPlayer(){
 
 
 onValue(
-ref(db,"rooms/"+roomCode),
+
+ref(
+db,
+"rooms/"+roomCode+"/guest"
+),
+
 snap=>{
 
 
-let data=snap.val();
+let guest=snap.val();
 
 
-
-if(!data)
-return;
-
-
-
-if(data.guest){
+if(guest){
 
 
 call =
 peer.call(
-data.guest,
+guest,
 stream
 );
 
@@ -439,31 +561,14 @@ document.getElementById("status")
 "🟢 Connected";
 
 
-
 }
 
-
-
-if(data.message){
-
-
-showMessage(
-data.message
-);
-
-
-}
 
 
 });
 
+
 }
-
-
-
-
-
-
 
 
 document.getElementById("join").onclick =
@@ -474,7 +579,8 @@ playerName =
 document.getElementById("name").value;
 
 
-if(playerName==""){
+
+if(!playerName){
 
 alert("Enter name");
 
@@ -484,11 +590,22 @@ return;
 
 
 
-await getMic();
-
-
 roomCode =
 document.getElementById("room").value;
+
+
+
+if(!roomCode){
+
+alert("Enter room code");
+
+return;
+
+}
+
+
+
+await getMic();
 
 
 
@@ -517,23 +634,25 @@ peer.on("open",async id=>{
 
 
 await set(
-ref(db,"rooms/"+roomCode+"/guest"),
+
+ref(
+db,
+"rooms/"+roomCode+"/guest"
+),
+
 id
-);
 
-
-
-await set(
-ref(db,"rooms/"+roomCode+"/guestName"),
-playerName
 );
 
 
 
 call =
 peer.call(
+
 room.val().host,
+
 stream
+
 );
 
 
@@ -552,7 +671,16 @@ document.getElementById("status")
 
 
 
-watchRoom();
+await sendEvent(
+
+"🟢 "+playerName+" joined"
+
+);
+
+
+
+listenChat();
+
 
 
 });
@@ -560,6 +688,64 @@ watchRoom();
 
 
 };
+
+
+
+
+
+
+
+document.getElementById("emergency").onclick =
+()=>{
+
+
+sendEvent(
+
+"🚨 "+playerName+" needs help!"
+
+);
+
+
+};
+
+
+
+
+
+
+
+document.getElementById("dead").onclick =
+()=>{
+
+
+sendEvent(
+
+"💀 "+playerName+" is dead!"
+
+);
+
+
+};
+
+
+
+
+
+
+
+document.getElementById("alive").onclick =
+()=>{
+
+
+sendEvent(
+
+"✅ "+playerName+" is alive!"
+
+);
+
+
+};
+
 
 const talk =
 document.getElementById("talk");
@@ -590,9 +776,22 @@ function talkOff(){
 
 
 
-talk.onmousedown=talkOn;
 
-talk.onmouseup=talkOff;
+talk.onmousedown=()=>{
+
+    talkOn();
+
+};
+
+
+
+talk.onmouseup=()=>{
+
+    talkOff();
+
+};
+
+
 
 
 talk.ontouchstart=e=>{
@@ -620,68 +819,8 @@ talk.ontouchend=e=>{
 
 
 
-async function sendMessage(msg){
-
-
-if(!roomCode)
-return;
-
-
-
-await set(
-ref(db,"rooms/"+roomCode+"/message"),
-playerName+" "+msg
-);
-
-
-
-}
-
-
-
-
-
-
-document.getElementById("emergency").onclick=()=>{
-
-sendMessage(
-"🚨 NEEDS HELP!"
-);
-
-};
-
-
-
-
-
-document.getElementById("dead").onclick=()=>{
-
-sendMessage(
-"💀 IS DEAD"
-);
-
-};
-
-
-
-
-
-document.getElementById("alive").onclick=()=>{
-
-sendMessage(
-"✅ IS ALIVE"
-);
-
-};
-
-
-
-
-
-
-
-
 let muted=false;
+
 
 
 document.getElementById("mute").onclick=()=>{
@@ -695,9 +834,12 @@ remoteAudio.muted=muted;
 
 
 document.getElementById("mute").innerHTML =
+
 muted ?
-"🔇 Unmute Speaker" :
-"🔊 Mute Speaker";
+
+"🔇 Unmute":
+
+"🔊 Mute";
 
 
 };
@@ -710,14 +852,31 @@ muted ?
 
 
 
-document.getElementById("exit").onclick=async()=>{
+document.getElementById("exit").onclick =
+async()=>{
 
 
 if(roomCode){
 
-await remove(
-ref(db,"rooms/"+roomCode)
+
+await sendEvent(
+
+"🔴 "+playerName+" left"
+
 );
+
+
+
+await remove(
+
+ref(
+db,
+"rooms/"+roomCode
+
+)
+
+);
+
 
 }
 
